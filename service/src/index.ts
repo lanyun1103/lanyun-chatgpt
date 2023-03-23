@@ -1,7 +1,8 @@
+import os from 'os'
 import express from 'express'
 import type { ChatContext, ChatMessage } from './chatgpt'
 import { chatConfig, chatReplyProcess } from './chatgpt'
-import { createUser, getUser, updateTimes } from './storage/mongo'
+import { createUser, getUser, updateMac, updateTimes } from './storage/mongo'
 
 const app = express()
 const router = express.Router()
@@ -50,6 +51,24 @@ router.post('/config', async (req, res) => {
     res.send(error)
   }
 })
+router.post('/get-mac', async (req, res) => {
+  try {
+    const interfaces = os.networkInterfaces()
+    const macAddresses = new Set()
+
+    Object.keys(interfaces).forEach((iface) => {
+      interfaces[iface].forEach((address) => {
+        if (address.mac && address.mac !== '00:00:00:00:00:00')
+          macAddresses.add(address.mac)
+      })
+    })
+
+    res.send(Array.from(macAddresses))
+  }
+  catch (error) {
+    res.send(error)
+  }
+})
 
 router.post('/session', async (req, res) => {
   try {
@@ -69,8 +88,28 @@ router.post('/verify', async (req, res) => {
       throw new Error('Secret key is empty')
 
     const user = await getUser(token)
+
     if (user === null)
       throw new Error('当前密钥不存在 | Secret key is invalid')
+
+    // 用户绑定mac
+    const macAddresses = user.mac.split(',')
+
+    // 用户当前设备 mac 地址
+    const interfaces = os.networkInterfaces()
+    const macAddress = Object.keys(interfaces).map(ifname =>
+      interfaces[ifname].find(addr => addr.family === 'IPv4' && !addr.internal)?.mac,
+    ).filter(Boolean)
+
+    // 非付费用户，没有存mac
+    if (user.macAuth && user.mac === '')
+      await updateMac(token, macAddress)
+
+    // 验证
+    const hasMatchingMacAddress: boolean = macAddress.some(address => macAddresses.includes(address))
+    // 不匹配
+    if (!hasMatchingMacAddress)
+      throw new Error('当前设备未通过验证！新设备请重新购买授权码')
     const times = user.times
     if (times === 0)
       throw new Error('您的剩余次数为0 | Secret key is invalid')
