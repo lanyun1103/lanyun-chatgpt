@@ -6,9 +6,9 @@ const url = process.env.MONGODB_URL
 const client = new MongoClient(url)
 const userCol = client.db('chatgpt').collection('user')
 
-export async function createUser(times: number) {
+export async function createUser(times: number, macAuth: boolean) {
   const token = generateToken()
-  const userInfo = new UserInfo(token, times)
+  const userInfo = new UserInfo(token, times, macAuth)
   await userCol.insertOne(userInfo)
   return userInfo
 }
@@ -24,7 +24,7 @@ export async function getUser(token: string) {
 export async function updateMac(token: string, newMac: string[]) {
   return await userCol.findOneAndUpdate(
     { token },
-    { $set: { macAddress: newMac } },
+    { $set: { mac: newMac } },
   )
 }
 export async function updateTimes(token: string) {

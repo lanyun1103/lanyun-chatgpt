@@ -92,29 +92,31 @@ router.post('/verify', async (req, res) => {
     if (user === null)
       throw new Error('当前密钥不存在 | Secret key is invalid')
 
-    // 用户绑定mac
-    const macAddresses = user.mac.split(',')
+    // 非付费用户
+    if (user.macAuth) {
+      // 账号绑定 mac
+      const macAddresses: Array<string> | undefined = user.mac
+      // 用户当前设备 mac 地址
+      const interfaces = os.networkInterfaces()
+      const macAddress = Object.keys(interfaces).map(ifname =>
+        interfaces[ifname].find(addr => addr.family === 'IPv4' && !addr.internal)?.mac,
+      ).filter(Boolean)
 
-    // 用户当前设备 mac 地址
-    const interfaces = os.networkInterfaces()
-    const macAddress = Object.keys(interfaces).map(ifname =>
-      interfaces[ifname].find(addr => addr.family === 'IPv4' && !addr.internal)?.mac,
-    ).filter(Boolean)
+      // 没有存 mac
+      if (user.mac === '') {
+        await updateMac(token, macAddress)
+      }
+      // 有 mac
+      else {
+        const hasMatchingMacAddress: boolean = macAddress.some(address => macAddresses.includes(address))
+        if (!hasMatchingMacAddress)
+          throw new Error('当前设备未通过验证！新设备请重新购买授权码')
+      }
+    }
 
-    // 非付费用户，没有存mac
-    if (user.macAuth && user.mac === '')
-      await updateMac(token, macAddress)
-
-    // 验证
-    const hasMatchingMacAddress: boolean = macAddress.some(address => macAddresses.includes(address))
-    // 不匹配
-    if (!hasMatchingMacAddress)
-      throw new Error('当前设备未通过验证！新设备请重新购买授权码')
-    const times = user.times
+    const times: number = user.times
     if (times === 0)
       throw new Error('您的剩余次数为0 | Secret key is invalid')
-    // if (process.env.AUTH_SECRET_KEY !== token)
-    //   throw new Error('密钥无效 | Secret key is invalid')
     res.send({ status: 'Success', message: 'Verify successfully', data: null })
   }
   catch (error) {
@@ -123,16 +125,14 @@ router.post('/verify', async (req, res) => {
 })
 router.post('/add-user', async (req, res) => {
   try {
-    const { times } = req.body as { times: number }
+    const { times, macAuth } = req.body as { times: number; macAuth: boolean }
     if (!times)
       throw new Error('Secret key is empty')
 
     if (times === 0)
       throw new Error('数字无效 | Secret key is invalid')
-    const user = await createUser(times)
+    const user = await createUser(times, macAuth)
     // const times = user.data.times
-    // if (process.env.AUTH_SECRET_KEY !== token)
-    //   throw new Error('密钥无效 | Secret key is invalid')
     res.send({ status: 'Success', message: `${user.token} ${user.times}`, data: null })
   }
   catch (error) {
