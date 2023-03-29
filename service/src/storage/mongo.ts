@@ -17,14 +17,14 @@ export async function getUser(token: string) {
 }
 
 /**
- * 通过 token 更新用户绑定 mac 地址
- * @param token
- * @param newMac
+ * 通过 token 更新用户绑定 uuid
+ * @param token token
+ * @param uuid uuid
  */
-export async function updateMac(token: string, newMac: string[]) {
+export async function updateMac(token: string, uuid: string) {
   return await userCol.findOneAndUpdate(
     { token },
-    { $set: { mac: newMac } },
+    { $set: { uuid } },
   )
 }
 export async function updateTimes(token: string) {

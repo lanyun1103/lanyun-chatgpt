@@ -62,6 +62,13 @@ async function onConversation() {
   const userInfo = await fetchGetUser(authStore.token || '')
   const times = parseInt(localStorage.getItem('accessAuth') || '')
   if (userInfo.data !== null) {
+    // 单设备用户
+    if (userInfo.data.macAuth) {
+      const curUuid = localStorage.getItem('uniqueKey')
+      // 当前 uuid 和数据库保存不同，退出登录
+      if (curUuid !== userInfo.data.uuid)
+        authStore.removeToken()
+    }
     if (userInfo.data.times <= 0) {
       alert('当前授权码次数已用完')
       return

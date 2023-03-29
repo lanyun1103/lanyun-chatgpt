@@ -3,6 +3,7 @@ import express from 'express'
 import type { ChatContext, ChatMessage } from './chatgpt'
 import { chatConfig, chatReplyProcess } from './chatgpt'
 import { createUser, getUser, updateMac, updateTimes } from './storage/mongo'
+import { uuid } from './utils'
 
 const app = express()
 const router = express.Router()
@@ -51,24 +52,6 @@ router.post('/config', async (req, res) => {
     res.send(error)
   }
 })
-router.post('/get-mac', async (req, res) => {
-  try {
-    const interfaces = os.networkInterfaces()
-    const macAddresses = new Set()
-
-    Object.keys(interfaces).forEach((iface) => {
-      interfaces[iface].forEach((address) => {
-        if (address.mac && address.mac !== '00:00:00:00:00:00')
-          macAddresses.add(address.mac)
-      })
-    })
-
-    res.send(Array.from(macAddresses))
-  }
-  catch (error) {
-    res.send(error)
-  }
-})
 
 router.post('/session', async (req, res) => {
   try {
@@ -92,32 +75,15 @@ router.post('/verify', async (req, res) => {
     if (user === null)
       throw new Error('当前密钥不存在 | Secret key is invalid')
 
+    const uuid4User = uuid()
     // 非付费用户
-    if (user.macAuth) {
-      // 账号绑定 mac
-      const macAddresses: Array<string> | undefined = user.mac
-      // 用户当前设备 mac 地址
-      const interfaces = os.networkInterfaces()
-      const macAddress = Object.keys(interfaces).map(ifname =>
-        interfaces[ifname].find(addr => addr.family === 'IPv4' && !addr.internal)?.mac,
-      ).filter(Boolean)
-
-      // 没有存 mac
-      if (user.mac === '') {
-        await updateMac(token, macAddress)
-      }
-      // 有 mac
-      else {
-        const hasMatchingMacAddress: boolean = macAddress.some(address => macAddresses.includes(address))
-        if (!hasMatchingMacAddress)
-          throw new Error('当前设备未通过验证！新设备请重新购买授权码')
-      }
-    }
+    if (user.macAuth)
+      await updateMac(token, uuid4User)
 
     const times: number = user.times
     if (times === 0)
       throw new Error('您的剩余次数为0 | Secret key is invalid')
-    res.send({ status: 'Success', message: 'Verify successfully', data: null })
+    res.send({ status: 'Success', message: 'Verify successfully', data: uuid4User })
   }
   catch (error) {
     res.send({ status: 'Fail', message: error.message, data: null })

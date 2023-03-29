@@ -28,8 +28,11 @@ async function handleVerify() {
 
   try {
     loading.value = true
-    await fetchVerify(secretKey)
+    const response = await fetchVerify(secretKey)
+    const uuid: string = response.data
     authStore.setToken(secretKey)
+    // 用户登录唯一键
+    localStorage.setItem('uniqueKey', uuid)
     ms.success('success')
     window.location.reload()
   }

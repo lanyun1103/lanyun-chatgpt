@@ -36,7 +36,9 @@ export const useAuthStore = defineStore('auth-store', {
       removeToken()
     },
   },
-  persist: true,
+  persist: {
+    storage: localStorage,
+  },
 })
 
 export function useAuthStoreWithout() {
