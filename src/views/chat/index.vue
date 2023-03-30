@@ -106,6 +106,9 @@ async function onConversation() {
 
   if (lastContext && usingContext.value)
     options = { ...lastContext }
+  // 如果 options 为空，向 message 添加指定内容
+  if (!options || Object.keys(options).length === 0)
+    message = `{"role": "system", "content": "一个基于GPT-4架构的ChatGPT"}${message}`
 
   addChat(
     +uuid,
