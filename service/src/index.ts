@@ -130,4 +130,4 @@ router.post('/get-user', async (req, res) => {
 app.use('', router)
 app.use('/api', router)
 
-app.listen(3004, () => globalThis.console.log('Gpt4 Server is running on port 3004'))
+app.listen(3002, () => globalThis.console.log('Gpt4 Server is running on port 3004'))
