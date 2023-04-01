@@ -23,7 +23,7 @@ export function defaultSetting(): AppState {
     siderCollapsed: false,
     theme: 'light',
     language: 'zh-CN',
-    gpt: 'gpt-3.5-turbo',
+    gpt: 'gpt-4',
     max_1: 1000,
     max_2: 1000,
     temperature: 0,

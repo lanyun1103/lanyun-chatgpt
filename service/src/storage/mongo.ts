@@ -4,7 +4,7 @@ import { UserInfo } from './model'
 
 const url = process.env.MONGODB_URL
 const client = new MongoClient(url)
-const userCol = client.db('chatgpt').collection('user')
+const userCol = client.db('chatgpt4').collection('user')
 
 export async function createUser(times: number, macAuth: boolean, token = '') {
   if (token === '')

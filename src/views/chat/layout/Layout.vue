@@ -28,13 +28,7 @@ const times = computed(() => {
 })
 // const needPermission = computed(() => (!authStore.token || authStore.times >= 4))
 const needPermission = computed(() => {
-  // return false
-  // return true
-  // 有token
-  if (authStore.token)
-    return false
-  // 没有token，判断缓存是否大于4
-  return parseInt(localStorage.getItem('accessAuth') || '') >= 4
+  return !authStore.token
 })
 
 const getMobileClass = computed(() => {
@@ -57,11 +51,9 @@ function toBuy() {
 
 onMounted(async () => {
   const userInfo = await fetchGetUser(authStore.token || '')
-  if (userInfo.data === null) {
+  if (userInfo.data === null)
     authStore.removeToken()
-    authStore.setTimes(4)
-  }
-  else { authStore.setTimes(userInfo.data.times) }
+  else authStore.setTimes(userInfo.data.times)
   if (!localStorage.getItem('accessAuth'))
     localStorage.setItem('accessAuth', '0')
 })
