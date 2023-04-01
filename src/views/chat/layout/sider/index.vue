@@ -14,10 +14,10 @@ const authStore = useAuthStore()
 
 const { isMobile } = useBasicLayout()
 const show = ref(false)
-const modelOptions: { label: string; key: string; value: string }[] = [
-  { label: 'Chatgpt3.5', key: '3.5', value: 'gpt-3.5-turbo' },
-  { label: 'Chatgpt4.0', key: '3.5', value: 'gpt-4' },
-]
+// const modelOptions: { label: string; key: string; value: string }[] = [
+//   { label: 'Chatgpt3.5', key: '3.5', value: 'gpt-3.5-turbo' },
+//   { label: 'Chatgpt4.0', key: '3.5', value: 'gpt-4' },
+// ]
 
 const serveOptions: { label: string; key: string; value: string }[] = [
   { label: '1', key: '3.5', value: '3.5' },

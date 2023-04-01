@@ -13,7 +13,7 @@ const router = useRouter()
 const appStore = useAppStore()
 const chatStore = useChatStore()
 const authStore = useAuthStore()
-const prompt = ref<string>('')
+// const prompt = ref<string>('')
 
 router.replace({ name: 'Chat', params: { uuid: chatStore.active } })
 
@@ -31,11 +31,11 @@ const needPermission = computed(() => {
   return !authStore.token
 })
 
-const getMobileClass = computed(() => {
-  if (isMobile.value)
-    return ['rounded-none', 'shadow-none']
-  return ['border', 'rounded-md', 'shadow-md', 'dark:border-neutral-800']
-})
+// const getMobileClass = computed(() => {
+//   if (isMobile.value)
+//     return ['rounded-none', 'shadow-none']
+//   return ['border', 'rounded-md', 'shadow-md', 'dark:border-neutral-800']
+// })
 
 const getContainerClass = computed(() => {
   return ['h-full', { 'pl-[260px]': !isMobile.value && !collapsed.value }]
