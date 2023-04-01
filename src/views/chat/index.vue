@@ -1,8 +1,15 @@
-<script setup lang='ts'>
+<script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { storeToRefs } from 'pinia'
-import { NAutoComplete, NButton, NInput, useDialog, useMessage } from 'naive-ui'
+import {
+  NAutoComplete,
+  NButton,
+  NInput,
+  NSlider,
+  useDialog,
+  useMessage,
+} from 'naive-ui'
 import html2canvas from 'html2canvas'
 import { Message } from './components'
 import { useScroll } from './hooks/useScroll'
@@ -12,7 +19,7 @@ import { useUsingContext } from './hooks/useUsingContext'
 import HeaderComponent from './components/Header/index.vue'
 import { HoverButton, SvgIcon } from '@/components/common'
 import { useBasicLayout } from '@/hooks/useBasicLayout'
-import { useAuthStore, useChatStore, usePromptStore } from '@/store'
+import { useAppStore, useAuthStore, useChatStore, usePromptStore } from '@/store'
 import { fetchChatAPIProcess, fetchCutTimes, fetchGetUser } from '@/api'
 import { t } from '@/locales'
 
@@ -29,15 +36,28 @@ const chatStore = useChatStore()
 useCopyCode()
 
 const { isMobile } = useBasicLayout()
-const { addChat, updateChat, updateChatSome, getChatByUuidAndIndex } = useChat()
+const { addChat, updateChat, updateChatSome, getChatByUuidAndIndex }
+	= useChat()
 const { scrollRef, scrollToBottom } = useScroll()
 const { usingContext, toggleUsingContext } = useUsingContext()
 
 const { uuid } = route.params as { uuid: string }
 
 const dataSources = computed(() => chatStore.getChatByUuid(+uuid))
-const conversationList = computed(() => dataSources.value.filter(item => (!item.inversion && !item.error)))
+const conversationList = computed(() =>
+  dataSources.value.filter(item => !item.inversion && !item.error),
+)
 const authStore = useAuthStore()
+const appStore = useAppStore()
+
+const temperature = computed({
+  get() {
+    return appStore.temperature
+  },
+  set(value: number) {
+    appStore.setTemperature(value)
+  },
+})
 
 const prompt = ref<string>('')
 const loading = ref<boolean>(false)
@@ -67,6 +87,7 @@ async function onConversation() {
       return
     }
     await fetchCutTimes(authStore.token || '')
+    authStore.setTimes(userInfo.data.times - 1)
   }
   else {
     if (times <= 3)
@@ -76,42 +97,41 @@ async function onConversation() {
       authStore.removeToken()
     localStorage.setItem('accessAuth', `${times + 1}`)
   }
+
   controller = new AbortController()
 
-  addChat(
-    +uuid,
-    {
-      dateTime: new Date().toLocaleString(),
-      text: message,
-      inversion: true,
-      error: false,
-      conversationOptions: null,
-      requestOptions: { prompt: message, options: null },
-    },
-  )
+  addChat(+uuid, {
+    dateTime: new Date().toLocaleString(),
+    text: message,
+    inversion: true,
+    error: false,
+    conversationOptions: null,
+    requestOptions: { prompt: message, options: null },
+  })
   scrollToBottom()
 
   loading.value = true
   prompt.value = ''
 
   let options: Chat.ConversationRequest = {}
-  const lastContext = conversationList.value[conversationList.value.length - 1]?.conversationOptions
+  const lastContext
+		= conversationList.value[conversationList.value.length - 1]
+		  ?.conversationOptions
+  const temperature = appStore.temperature
+  const gpt = appStore.gpt
 
   if (lastContext && usingContext.value)
     options = { ...lastContext }
 
-  addChat(
-    +uuid,
-    {
-      dateTime: new Date().toLocaleString(),
-      text: '',
-      loading: true,
-      inversion: false,
-      error: false,
-      conversationOptions: null,
-      requestOptions: { prompt: message, options: { ...options } },
-    },
-  )
+  addChat(+uuid, {
+    dateTime: new Date().toLocaleString(),
+    text: '',
+    loading: true,
+    inversion: false,
+    error: false,
+    conversationOptions: null,
+    requestOptions: { prompt: message, options: { ...options } },
+  })
   scrollToBottom()
 
   try {
@@ -119,6 +139,10 @@ async function onConversation() {
     const fetchChatAPIOnce = async () => {
       await fetchChatAPIProcess<Chat.ConversationResponse>({
         prompt: message,
+        // TODO 这里改成动态取值
+        maxModelToken: 1000,
+        model: gpt,
+        temperature,
         options,
         signal: controller.signal,
         onDownloadProgress: ({ event }) => {
@@ -131,21 +155,22 @@ async function onConversation() {
             chunk = responseText.substring(lastIndex)
           try {
             const data = JSON.parse(chunk)
-            updateChat(
-              +uuid,
-              dataSources.value.length - 1,
-              {
-                dateTime: new Date().toLocaleString(),
-                text: lastText + data.text ?? '',
-                inversion: false,
-                error: false,
-                loading: false,
-                conversationOptions: { conversationId: data.conversationId, parentMessageId: data.id },
-                requestOptions: { prompt: message, options: { ...options } },
+            updateChat(+uuid, dataSources.value.length - 1, {
+              dateTime: new Date().toLocaleString(),
+              text: lastText + data.text ?? '',
+              inversion: false,
+              error: false,
+              loading: false,
+              conversationOptions: {
+                conversationId: data.conversationId,
+                parentMessageId: data.id,
               },
-            )
+              requestOptions: { prompt: message, options: { ...options } },
+            })
 
-            if (openLongReply && data.detail.choices[0].finish_reason === 'length') {
+            if (
+              openLongReply && data.detail.choices[0].finish_reason === 'length'
+            ) {
               options.parentMessageId = data.id
               lastText = data.text
               message = ''
@@ -155,7 +180,7 @@ async function onConversation() {
             scrollToBottom()
           }
           catch (error) {
-          //
+            //
           }
         },
       })
@@ -167,45 +192,36 @@ async function onConversation() {
     const errorMessage = error?.message ?? t('common.wrong')
 
     if (error.message === 'canceled') {
-      updateChatSome(
-        +uuid,
-        dataSources.value.length - 1,
-        {
-          loading: false,
-        },
-      )
+      updateChatSome(+uuid, dataSources.value.length - 1, {
+        loading: false,
+      })
       scrollToBottom()
       return
     }
 
-    const currentChat = getChatByUuidAndIndex(+uuid, dataSources.value.length - 1)
+    const currentChat = getChatByUuidAndIndex(
+      +uuid,
+      dataSources.value.length - 1,
+    )
 
     if (currentChat?.text && currentChat.text !== '') {
-      updateChatSome(
-        +uuid,
-        dataSources.value.length - 1,
-        {
-          text: `${currentChat.text}\n[${errorMessage}]`,
-          error: false,
-          loading: false,
-        },
-      )
+      updateChatSome(+uuid, dataSources.value.length - 1, {
+        text: `${currentChat.text}\n[${errorMessage}]`,
+        error: false,
+        loading: false,
+      })
       return
     }
 
-    updateChat(
-      +uuid,
-      dataSources.value.length - 1,
-      {
-        dateTime: new Date().toLocaleString(),
-        text: errorMessage,
-        inversion: false,
-        error: true,
-        loading: false,
-        conversationOptions: null,
-        requestOptions: { prompt: message, options: { ...options } },
-      },
-    )
+    updateChat(+uuid, dataSources.value.length - 1, {
+      dateTime: new Date().toLocaleString(),
+      text: errorMessage,
+      inversion: false,
+      error: true,
+      loading: false,
+      conversationOptions: null,
+      requestOptions: { prompt: message, options: { ...options } },
+    })
     scrollToBottom()
   }
   finally {
@@ -220,6 +236,8 @@ async function onRegenerate(index: number) {
   controller = new AbortController()
 
   const { requestOptions } = dataSources.value[index]
+  const temperature = appStore.temperature
+  const gpt = appStore.gpt
 
   let message = requestOptions?.prompt ?? ''
 
@@ -230,25 +248,25 @@ async function onRegenerate(index: number) {
 
   loading.value = true
 
-  updateChat(
-    +uuid,
-    index,
-    {
-      dateTime: new Date().toLocaleString(),
-      text: '',
-      inversion: false,
-      error: false,
-      loading: true,
-      conversationOptions: null,
-      requestOptions: { prompt: message, ...options },
-    },
-  )
+  updateChat(+uuid, index, {
+    dateTime: new Date().toLocaleString(),
+    text: '',
+    inversion: false,
+    error: false,
+    loading: true,
+    conversationOptions: null,
+    requestOptions: { prompt: message, ...options },
+  })
 
   try {
     let lastText = ''
     const fetchChatAPIOnce = async () => {
       await fetchChatAPIProcess<Chat.ConversationResponse>({
         prompt: message,
+        // TODO 这里改成动态取值
+        maxModelToken: 1000,
+        model: gpt,
+        temperature,
         options,
         signal: controller.signal,
         onDownloadProgress: ({ event }) => {
@@ -261,21 +279,23 @@ async function onRegenerate(index: number) {
             chunk = responseText.substring(lastIndex)
           try {
             const data = JSON.parse(chunk)
-            updateChat(
-              +uuid,
-              index,
-              {
-                dateTime: new Date().toLocaleString(),
-                text: lastText + data.text ?? '',
-                inversion: false,
-                error: false,
-                loading: false,
-                conversationOptions: { conversationId: data.conversationId, parentMessageId: data.id },
-                requestOptions: { prompt: message, ...options },
+            updateChat(+uuid, index, {
+              dateTime: new Date().toLocaleString(),
+              text: lastText + data.text ?? '',
+              inversion: false,
+              error: false,
+              loading: false,
+              conversationOptions: {
+                conversationId: data.conversationId,
+                parentMessageId: data.id,
               },
-            )
+              requestOptions: { prompt: message, ...options },
+            })
 
-            if (openLongReply && data.detail.choices[0].finish_reason === 'length') {
+            if (
+              openLongReply
+							&& data.detail.choices[0].finish_reason === 'length'
+            ) {
               options.parentMessageId = data.id
               lastText = data.text
               message = ''
@@ -292,31 +312,23 @@ async function onRegenerate(index: number) {
   }
   catch (error: any) {
     if (error.message === 'canceled') {
-      updateChatSome(
-        +uuid,
-        index,
-        {
-          loading: false,
-        },
-      )
+      updateChatSome(+uuid, index, {
+        loading: false,
+      })
       return
     }
 
     const errorMessage = error?.message ?? t('common.wrong')
 
-    updateChat(
-      +uuid,
-      index,
-      {
-        dateTime: new Date().toLocaleString(),
-        text: errorMessage,
-        inversion: false,
-        error: true,
-        loading: false,
-        conversationOptions: null,
-        requestOptions: { prompt: message, ...options },
-      },
-    )
+    updateChat(+uuid, index, {
+      dateTime: new Date().toLocaleString(),
+      text: errorMessage,
+      inversion: false,
+      error: true,
+      loading: false,
+      conversationOptions: null,
+      requestOptions: { prompt: message, ...options },
+    })
   }
   finally {
     loading.value = false
@@ -422,12 +434,16 @@ function handleStop() {
 // 理想状态下其实应该是key作为索引项,但官方的renderOption会出现问题，所以就需要value反renderLabel实现
 const searchOptions = computed(() => {
   if (prompt.value.startsWith('/')) {
-    return promptTemplate.value.filter((item: { key: string }) => item.key.toLowerCase().includes(prompt.value.substring(1).toLowerCase())).map((obj: { value: any }) => {
-      return {
-        label: obj.value,
-        value: obj.value,
-      }
-    })
+    return promptTemplate.value
+      .filter((item: { key: string }) =>
+        item.key.toLowerCase().includes(prompt.value.substring(1).toLowerCase()),
+      )
+      .map((obj: { value: any }) => {
+        return {
+          label: obj.value,
+          value: obj.value,
+        }
+      })
   }
   else {
     return []
@@ -439,6 +455,7 @@ const renderOption = (option: { label: string }) => {
     if (i.value === option.label)
       return [i.key]
   }
+
   return []
 }
 
@@ -454,8 +471,17 @@ const buttonDisabled = computed(() => {
 
 const footerClass = computed(() => {
   let classes = ['p-4']
-  if (isMobile.value)
-    classes = ['sticky', 'left-0', 'bottom-0', 'right-0', 'p-2', 'pr-3', 'overflow-hidden']
+  if (isMobile.value) {
+    classes = [
+      'sticky',
+      'left-0',
+      'bottom-0',
+      'right-0',
+      'p-2',
+      'pr-3',
+      'overflow-hidden',
+    ]
+  }
   return classes
 })
 
@@ -489,7 +515,9 @@ onUnmounted(() => {
           :class="[isMobile ? 'p-2' : 'p-4']"
         >
           <template v-if="!dataSources.length">
-            <div class="flex items-center justify-center mt-4 text-center text-neutral-300">
+            <div
+              class="flex items-center justify-center mt-4 text-center text-neutral-300"
+            >
               <SvgIcon icon="ri:bubble-chart-fill" class="mr-2 text-3xl" />
               <span>Aha~</span>
             </div>
@@ -521,6 +549,12 @@ onUnmounted(() => {
       </div>
     </main>
     <footer :class="footerClass">
+      <div class="p-4">
+        Emotional Temperature
+        <div>
+          <NSlider v-model:value="temperature" :min="0" :max="2" :step="0.1" />
+        </div>
+      </div>
       <div class="w-full max-w-screen-xl m-auto">
         <div class="flex items-center justify-between space-x-2">
           <HoverButton @click="handleClear">
@@ -534,11 +568,21 @@ onUnmounted(() => {
             </span>
           </HoverButton>
           <HoverButton v-if="!isMobile" @click="toggleUsingContext">
-            <span class="text-xl" :class="{ 'text-[#4b9e5f]': usingContext, 'text-[#a8071a]': !usingContext }">
+            <span
+              class="text-xl"
+              :class="{
+                'text-[#4b9e5f]': usingContext,
+                'text-[#a8071a]': !usingContext,
+              }"
+            >
               <SvgIcon icon="ri:chat-history-line" />
             </span>
           </HoverButton>
-          <NAutoComplete v-model:value="prompt" :options="searchOptions" :render-label="renderOption">
+          <NAutoComplete
+            v-model:value="prompt"
+            :options="searchOptions"
+            :render-label="renderOption"
+          >
             <template #default="{ handleInput, handleBlur, handleFocus }">
               <NInput
                 v-model:value="prompt"
@@ -552,7 +596,11 @@ onUnmounted(() => {
               />
             </template>
           </NAutoComplete>
-          <NButton type="primary" :disabled="buttonDisabled" @click="handleSubmit">
+          <NButton
+            type="primary"
+            :disabled="buttonDisabled"
+            @click="handleSubmit"
+          >
             <template #icon>
               <span class="dark:text-black">
                 <SvgIcon icon="ri:send-plane-fill" />

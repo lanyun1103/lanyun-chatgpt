@@ -1,17 +1,19 @@
 import { defineStore } from 'pinia'
-import { getToken, removeToken, setToken } from './helper'
+import { getToken, removeToken, setTimes, setToken } from './helper'
 import { store } from '@/store'
 import { fetchSession } from '@/api'
 
 export interface AuthState {
   token: string | undefined
   session: { auth: boolean } | null
+  times: number
 }
 
 export const useAuthStore = defineStore('auth-store', {
   state: (): AuthState => ({
     token: getToken(),
     session: null,
+    times: 0,
   }),
 
   actions: {
@@ -35,8 +37,15 @@ export const useAuthStore = defineStore('auth-store', {
       this.token = undefined
       removeToken()
     },
+
+    setTimes(times: number) {
+      this.times = times
+      setTimes(times)
+    },
   },
-  persist: true,
+  persist: {
+    storage: localStorage,
+  },
 })
 
 export function useAuthStoreWithout() {

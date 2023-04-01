@@ -6,8 +6,10 @@ const url = process.env.MONGODB_URL
 const client = new MongoClient(url)
 const userCol = client.db('chatgpt').collection('user')
 
-export async function createUser(times: number, macAuth: boolean) {
-  const token = generateToken()
+export async function createUser(times: number, macAuth: boolean, token = '') {
+  if (token === '')
+    token = generateToken()
+
   const userInfo = new UserInfo(token, times, macAuth)
   await userCol.insertOne(userInfo)
   return userInfo
@@ -17,14 +19,14 @@ export async function getUser(token: string) {
 }
 
 /**
- * 通过 token 更新用户绑定 mac 地址
- * @param token
- * @param newMac
+ * 通过 token 更新用户绑定 uuid
+ * @param token token
+ * @param uuid uuid
  */
-export async function updateMac(token: string, newMac: string[]) {
+export async function updateMac(token: string, uuid: string) {
   return await userCol.findOneAndUpdate(
     { token },
-    { $set: { mac: newMac } },
+    { $set: { uuid } },
   )
 }
 export async function updateTimes(token: string) {
