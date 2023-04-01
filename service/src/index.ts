@@ -21,7 +21,7 @@ app.all('*', (_, res, next) => {
 router.post('/chat-process', async (req, res) => {
   res.setHeader('Content-type', 'application/octet-stream')
   try {
-    const { prompt, options = {} } = req.body as { prompt: string; options?: ChatContext }
+    const { prompt, options = {}, maxModelToken, model, temperature } = req.body as { prompt: string; options?: ChatContext; maxModelToken: number; model: string; temperature: number }
     const authHeader = req.headers.authorization
 
     // 检查header是否存在
@@ -30,7 +30,7 @@ router.post('/chat-process', async (req, res) => {
       return
     }
     let firstChunk = true
-    await chatReplyProcess(prompt, options, (chat: ChatMessage) => {
+    await chatReplyProcess(prompt, maxModelToken, model, temperature, options, (chat: ChatMessage) => {
       res.write(firstChunk ? JSON.stringify(chat) : `\n${JSON.stringify(chat)}`)
       firstChunk = false
     })
