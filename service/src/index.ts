@@ -91,13 +91,13 @@ router.post('/verify', async (req, res) => {
 })
 router.post('/add-user', async (req, res) => {
   try {
-    const { times, macAuth } = req.body as { times: number; macAuth: boolean }
+    const { times, macAuth, token } = req.body as { times: number; macAuth: boolean; token: string }
     if (!times)
       throw new Error('Secret key is empty')
 
     if (times === 0)
       throw new Error('数字无效 | Secret key is invalid')
-    const user = await createUser(times, macAuth)
+    const user = await createUser(times, macAuth, token)
     // const times = user.data.times
     res.send({ status: 'Success', message: `${user.token} ${user.times}`, data: null })
   }
