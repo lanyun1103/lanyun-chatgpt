@@ -42,7 +42,7 @@ const getContainerClass = computed(() => {
 })
 
 function issue() {
-  window.open('https://w3il86yl7n.feishu.cn/docx/BNpPdbbDwoBV6uxn2RdceUhXnfc', '_blank')
+  window.open('https://w3il86yl7n.feishu.cn/docx/GMTMdYABIo5PBUxPdEQcQ4ExnVc?from=from_copylink', '_blank')
 }
 
 function toBuy() {

@@ -19,8 +19,9 @@ app.all('*', (_, res, next) => {
 
 router.post('/chat-process', async (req, res) => {
   res.setHeader('Content-type', 'application/octet-stream')
+  let lastText = ''
+  const { prompt, options = {}, maxModelToken, model, temperature, token } = req.body as { prompt: string; options?: ChatContext; maxModelToken: number; model: string; temperature: number; token: string }
   try {
-    const { prompt, options = {}, maxModelToken, model, temperature } = req.body as { prompt: string; options?: ChatContext; maxModelToken: number; model: string; temperature: number }
     const authHeader = req.headers.authorization
 
     // 检查header是否存在
@@ -32,12 +33,15 @@ router.post('/chat-process', async (req, res) => {
     await chatReplyProcess(prompt, maxModelToken, model, temperature, options, (chat: ChatMessage) => {
       res.write(firstChunk ? JSON.stringify(chat) : `\n${JSON.stringify(chat)}`)
       firstChunk = false
+      lastText = chat.text
     })
   }
   catch (error) {
     res.write(JSON.stringify(error))
   }
   finally {
+    await reduceTimes(token, lastText.length)
+    console.log(lastText)
     res.end()
   }
 })
@@ -91,8 +95,14 @@ router.post('/verify', async (req, res) => {
 router.post('/add-user', async (req, res) => {
   try {
     const { times, macAuth, token } = req.body as { times: number; macAuth: boolean; token: string }
+    const authHeader = req.headers.authorization
+    // 检查header是否存在
+    if (authHeader !== 'lanyun1103') {
+      res.status(401).json({ error: 'Authorization header is missing' })
+      return
+    }
     if (!times)
-      throw new Error('Secret key is empty')
+      throw new Error('Invalid params')
 
     if (times === 0)
       throw new Error('数字无效 | Secret key is invalid')

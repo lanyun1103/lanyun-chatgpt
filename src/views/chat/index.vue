@@ -142,6 +142,7 @@ async function onConversation() {
         model: gpt,
         temperature,
         options,
+        token: authStore.token ?? '',
         signal: controller.signal,
         onDownloadProgress: ({ event }) => {
           const xhr = event.target
@@ -185,14 +186,14 @@ async function onConversation() {
       })
     }
     await fetchChatAPIOnce()
-    await fetchReduceTimes(authStore.token || '', singleText.length)
+    // await fetchReduceTimes(authStore.token || '', singleText.length)
     if (userInfo.data !== null)
       authStore.setTimes(userInfo.data.times - singleText.length)
   }
   catch (error: any) {
     const errorMessage = error?.message ?? t('common.wrong')
     if (error.message === 'canceled') {
-      await fetchReduceTimes(authStore.token || '', singleText.length)
+      // await fetchReduceTimes(authStore.token || '', singleText.length)
       if (userInfo.data !== null)
         authStore.setTimes(userInfo.data.times - singleText.length)
       updateChatSome(+uuid, dataSources.value.length - 1, {
@@ -286,11 +287,11 @@ async function onRegenerate(index: number) {
     const fetchChatAPIOnce = async () => {
       await fetchChatAPIProcess<Chat.ConversationResponse>({
         prompt: message,
-        // TODO 这里改成动态取值
         maxModelToken: 1000,
         model: gpt,
         temperature,
         options,
+        token: authStore.token ?? '',
         signal: controller.signal,
         onDownloadProgress: ({ event }) => {
           const xhr = event.target
@@ -332,13 +333,13 @@ async function onRegenerate(index: number) {
       })
     }
     await fetchChatAPIOnce()
-    await fetchReduceTimes(authStore.token || '', singleText.length)
+    // await fetchReduceTimes(authStore.token || '', singleText.length)
     if (userInfo.data !== null)
       authStore.setTimes(userInfo.data.times - message.length)
   }
   catch (error: any) {
     if (error.message === 'canceled') {
-      await fetchReduceTimes(authStore.token || '', singleText.length)
+      // await fetchReduceTimes(authStore.token || '', singleText.length)
       if (userInfo.data !== null)
         authStore.setTimes(userInfo.data.times - message.length)
       updateChatSome(+uuid, index, {

@@ -25,13 +25,14 @@ export function fetchChatAPIProcess<T = any>(
     maxModelToken: number
     model: string
     temperature: number
+    token: string
     options?: { conversationId?: string; parentMessageId?: string }
     signal?: GenericAbortSignal
     onDownloadProgress?: (progressEvent: AxiosProgressEvent) => void },
 ) {
   return post<T>({
     url: '/chat-process',
-    data: { prompt: params.prompt, options: params.options, maxModelToken: params.maxModelToken, model: params.model, temperature: params.temperature },
+    data: { prompt: params.prompt, options: params.options, maxModelToken: params.maxModelToken, model: params.model, temperature: params.temperature, token: params.token },
     signal: params.signal,
     onDownloadProgress: params.onDownloadProgress,
   })
