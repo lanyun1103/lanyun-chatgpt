@@ -86,8 +86,8 @@ async function onConversation() {
       return
     }
     // await fetchCutTimes(authStore.token || '')
-    await fetchReduceTimes(authStore.token || '', Math.ceil(message.length * 0.4))
-    authStore.setTimes(userInfo.data.times - Math.ceil(message.length * 0.4))
+    await fetchReduceTimes(authStore.token || '', Math.ceil(message.length * 0.5))
+    authStore.setTimes(userInfo.data.times - Math.ceil(message.length * 0.5))
   }
   else {
     if (times <= 3)
@@ -154,7 +154,6 @@ async function onConversation() {
           try {
             const data = JSON.parse(chunk)
             singleText = lastText + data.text ?? ''
-            console.log(singleText)
             updateChat(+uuid, dataSources.value.length - 1, {
               dateTime: new Date().toLocaleString(),
               text: lastText + data.text ?? '',
@@ -185,18 +184,17 @@ async function onConversation() {
         },
       })
     }
-    console.log(`${singleText}finished`)
     await fetchChatAPIOnce()
-    await fetchReduceTimes(authStore.token || '', Math.ceil(singleText.length * 0.75))
+    await fetchReduceTimes(authStore.token || '', singleText.length)
     if (userInfo.data !== null)
-      authStore.setTimes(userInfo.data.times - Math.ceil(message.length * 0.4))
+      authStore.setTimes(userInfo.data.times - singleText.length)
   }
   catch (error: any) {
     const errorMessage = error?.message ?? t('common.wrong')
     if (error.message === 'canceled') {
-      await fetchReduceTimes(authStore.token || '', Math.ceil(singleText.length * 0.75))
+      await fetchReduceTimes(authStore.token || '', singleText.length)
       if (userInfo.data !== null)
-        authStore.setTimes(userInfo.data.times - Math.ceil(message.length * 0.4))
+        authStore.setTimes(userInfo.data.times - singleText.length)
       updateChatSome(+uuid, dataSources.value.length - 1, {
         loading: false,
       })
@@ -254,8 +252,8 @@ async function onRegenerate(index: number) {
       return
     }
     // await fetchCutTimes(authStore.token || '')
-    await fetchReduceTimes(authStore.token || '', Math.ceil(message.length * 0.4))
-    authStore.setTimes(userInfo.data.times - Math.ceil(message.length * 0.4))
+    await fetchReduceTimes(authStore.token || '', Math.ceil(message.length * 0.5))
+    authStore.setTimes(userInfo.data.times - Math.ceil(message.length * 0.5))
   }
   else {
     if (times <= 3)
@@ -334,15 +332,15 @@ async function onRegenerate(index: number) {
       })
     }
     await fetchChatAPIOnce()
-    await fetchReduceTimes(authStore.token || '', Math.ceil(singleText.length * 0.75))
+    await fetchReduceTimes(authStore.token || '', singleText.length)
     if (userInfo.data !== null)
-      authStore.setTimes(userInfo.data.times - Math.ceil(message.length * 0.4))
+      authStore.setTimes(userInfo.data.times - message.length)
   }
   catch (error: any) {
     if (error.message === 'canceled') {
-      await fetchReduceTimes(authStore.token || '', Math.ceil(singleText.length * 0.75))
+      await fetchReduceTimes(authStore.token || '', singleText.length)
       if (userInfo.data !== null)
-        authStore.setTimes(userInfo.data.times - Math.ceil(message.length * 0.4))
+        authStore.setTimes(userInfo.data.times - message.length)
       updateChatSome(+uuid, index, {
         loading: false,
       })
