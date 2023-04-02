@@ -1,4 +1,4 @@
-import os from 'os'
+// import os from 'os'
 import express from 'express'
 import type { ChatContext, ChatMessage } from './chatgpt'
 import { chatConfig, chatReplyProcess } from './chatgpt'
@@ -130,4 +130,4 @@ router.post('/get-user', async (req, res) => {
 app.use('', router)
 app.use('/api', router)
 
-app.listen(3002, () => globalThis.console.log('Gpt4 Server is running on port 3004'))
+app.listen(3002, () => globalThis.console.log('Gpt4 Server is running on port 3002'))

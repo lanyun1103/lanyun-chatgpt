@@ -36,8 +36,7 @@ const chatStore = useChatStore()
 useCopyCode()
 
 const { isMobile } = useBasicLayout()
-const { addChat, updateChat, updateChatSome, getChatByUuidAndIndex }
-	= useChat()
+const { addChat, updateChat, updateChatSome, getChatByUuidAndIndex } = useChat()
 const { scrollRef, scrollToBottom } = useScroll()
 const { usingContext, toggleUsingContext } = useUsingContext()
 
@@ -114,9 +113,7 @@ async function onConversation() {
   prompt.value = ''
 
   let options: Chat.ConversationRequest = {}
-  const lastContext
-		= conversationList.value[conversationList.value.length - 1]
-		  ?.conversationOptions
+  const lastContext = conversationList.value[conversationList.value.length - 1]?.conversationOptions
   const temperature = appStore.temperature
   const gpt = appStore.gpt
 
@@ -139,8 +136,7 @@ async function onConversation() {
     const fetchChatAPIOnce = async () => {
       await fetchChatAPIProcess<Chat.ConversationResponse>({
         prompt: message,
-        // TODO 这里改成动态取值
-        maxModelToken: 1000,
+        maxModelToken: appStore.max_1,
         model: gpt,
         temperature,
         options,
@@ -264,7 +260,7 @@ async function onRegenerate(index: number) {
       await fetchChatAPIProcess<Chat.ConversationResponse>({
         prompt: message,
         // TODO 这里改成动态取值
-        maxModelToken: 1000,
+        maxModelToken: appStore.max_1,
         model: gpt,
         temperature,
         options,
@@ -293,8 +289,7 @@ async function onRegenerate(index: number) {
             })
 
             if (
-              openLongReply
-							&& data.detail.choices[0].finish_reason === 'length'
+              openLongReply && data.detail.choices[0].finish_reason === 'length'
             ) {
               options.parentMessageId = data.id
               lastText = data.text
