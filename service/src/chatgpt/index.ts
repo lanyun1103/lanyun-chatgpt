@@ -28,22 +28,21 @@ if (!process.env.OPENAI_API_KEY && !process.env.OPENAI_ACCESS_TOKEN)
 
 let api: ChatGPTAPI | ChatGPTUnofficialProxyAPI
 
-function createOpenApi(maxModelToken: number, model = '', temperature: number) {
-  // const OPENAI_API_MODEL = process.env.OPENAI_API_MODEL
-  model = (typeof model === 'string' && model.length > 0)
-    ? model
-    : 'gpt-3.5-turbo'
-
-  const options: ChatGPTAPIOptions = {
-    apiKey: process.env.OPENAI_API_KEY,
-    completionParams: { model, temperature },
-    debug: false,
-    // maxModelTokens: 1000,
-  }
-  console.log(model + temperature)
-  api = new ChatGPTAPI({ ...options })
-  apiModel = 'ChatGPTAPI'
-}
+// function createOpenApi(maxModelToken: number, model = '', temperature: number) {
+//   // const OPENAI_API_MODEL = process.env.OPENAI_API_MODEL
+//   model = (typeof model === 'string' && model.length > 0)
+//     ? model
+//     : 'gpt-3.5-turbo'
+//
+//   const options: ChatGPTAPIOptions = {
+//     apiKey: process.env.OPENAI_API_KEY,
+//     completionParams: { model, temperature },
+//     debug: false,
+//     // maxModelTokens: 1000,
+//   }
+//   api = new ChatGPTAPI({ ...options })
+//   apiModel = 'ChatGPTAPI'
+// }
 
 (async () => {
   // More Info: https://github.com/transitive-bullshit/chatgpt-api
@@ -51,7 +50,7 @@ function createOpenApi(maxModelToken: number, model = '', temperature: number) {
     const OPENAI_API_MODEL = process.env.OPENAI_API_MODEL
     const model = (typeof OPENAI_API_MODEL === 'string' && OPENAI_API_MODEL.length > 0)
       ? OPENAI_API_MODEL
-      : 'gpt-3.5-turbo'
+      : 'gpt-4'
 
     const options: ChatGPTAPIOptions = {
       apiKey: process.env.OPENAI_API_KEY,
@@ -129,7 +128,7 @@ async function chatReplyProcess(
   try {
     let options: SendMessageOptions = { timeoutMs }
 
-    createOpenApi(maxModelToken, model, temperature)
+    // createOpenApi(maxModelToken, model, temperature)
 
     if (lastContext) {
       if (apiModel === 'ChatGPTAPI')

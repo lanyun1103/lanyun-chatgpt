@@ -36,8 +36,7 @@ const chatStore = useChatStore()
 useCopyCode()
 
 const { isMobile } = useBasicLayout()
-const { addChat, updateChat, updateChatSome, getChatByUuidAndIndex }
-	= useChat()
+const { addChat, updateChat, updateChatSome, getChatByUuidAndIndex } = useChat()
 const { scrollRef, scrollToBottom } = useScroll()
 const { usingContext, toggleUsingContext } = useUsingContext()
 
@@ -114,9 +113,7 @@ async function onConversation() {
   prompt.value = ''
 
   let options: Chat.ConversationRequest = {}
-  const lastContext
-		= conversationList.value[conversationList.value.length - 1]
-		  ?.conversationOptions
+  const lastContext = conversationList.value[conversationList.value.length - 1]?.conversationOptions
   const temperature = appStore.temperature
   const gpt = appStore.gpt
 
@@ -293,8 +290,7 @@ async function onRegenerate(index: number) {
             })
 
             if (
-              openLongReply
-							&& data.detail.choices[0].finish_reason === 'length'
+              openLongReply && data.detail.choices[0].finish_reason === 'length'
             ) {
               options.parentMessageId = data.id
               lastText = data.text
