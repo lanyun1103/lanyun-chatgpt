@@ -20,7 +20,7 @@ import HeaderComponent from './components/Header/index.vue'
 import { HoverButton, SvgIcon } from '@/components/common'
 import { useBasicLayout } from '@/hooks/useBasicLayout'
 import { useAppStore, useAuthStore, useChatStore, usePromptStore } from '@/store'
-import { fetchChatAPIProcess, fetchCutTimes, fetchGetUser } from '@/api'
+import { fetchChatAPIProcess, fetchGetUser, fetchReduceTimes } from '@/api'
 import { t } from '@/locales'
 
 let controller = new AbortController()
@@ -85,8 +85,9 @@ async function onConversation() {
       alert('当前授权码次数已用完')
       return
     }
-    await fetchCutTimes(authStore.token || '')
-    authStore.setTimes(userInfo.data.times - 1)
+    // await fetchCutTimes(authStore.token || '')
+    await fetchReduceTimes(authStore.token || '', Math.ceil(message.length * 0.4))
+    authStore.setTimes(userInfo.data.times - Math.ceil(message.length * 0.4))
   }
   else {
     if (times <= 3)
@@ -131,8 +132,8 @@ async function onConversation() {
   })
   scrollToBottom()
 
+  let lastText = ''
   try {
-    let lastText = ''
     const fetchChatAPIOnce = async () => {
       await fetchChatAPIProcess<Chat.ConversationResponse>({
         prompt: message,
@@ -184,11 +185,16 @@ async function onConversation() {
     }
 
     await fetchChatAPIOnce()
+    await fetchReduceTimes(authStore.token || '', Math.ceil(lastText.length * 0.75))
+    if (userInfo.data !== null)
+      authStore.setTimes(userInfo.data.times - Math.ceil(message.length * 0.4))
   }
   catch (error: any) {
     const errorMessage = error?.message ?? t('common.wrong')
-
     if (error.message === 'canceled') {
+      await fetchReduceTimes(authStore.token || '', Math.ceil(lastText.length * 0.75))
+      if (userInfo.data !== null)
+        authStore.setTimes(userInfo.data.times - Math.ceil(message.length * 0.4))
       updateChatSome(+uuid, dataSources.value.length - 1, {
         loading: false,
       })
@@ -237,9 +243,28 @@ async function onRegenerate(index: number) {
   const gpt = appStore.gpt
 
   let message = requestOptions?.prompt ?? ''
+  // 用户信息
+  const userInfo = await fetchGetUser(authStore.token || '')
+  const times = parseInt(localStorage.getItem('accessAuth') || '')
+  if (userInfo.data !== null) {
+    if (userInfo.data.times <= 0) {
+      alert('当前授权码次数已用完')
+      return
+    }
+    // await fetchCutTimes(authStore.token || '')
+    await fetchReduceTimes(authStore.token || '', Math.ceil(message.length * 0.4))
+    authStore.setTimes(userInfo.data.times - Math.ceil(message.length * 0.4))
+  }
+  else {
+    if (times <= 3)
+      authStore.setToken('Train')
 
+    if (times >= 4)
+      authStore.removeToken()
+    localStorage.setItem('accessAuth', `${times + 1}`)
+  }
   let options: Chat.ConversationRequest = {}
-
+  // end
   if (requestOptions.options)
     options = { ...requestOptions.options }
 
@@ -255,8 +280,8 @@ async function onRegenerate(index: number) {
     requestOptions: { prompt: message, ...options },
   })
 
+  let lastText = ''
   try {
-    let lastText = ''
     const fetchChatAPIOnce = async () => {
       await fetchChatAPIProcess<Chat.ConversationResponse>({
         prompt: message,
@@ -305,9 +330,15 @@ async function onRegenerate(index: number) {
       })
     }
     await fetchChatAPIOnce()
+    await fetchReduceTimes(authStore.token || '', Math.ceil(lastText.length * 0.75))
+    if (userInfo.data !== null)
+      authStore.setTimes(userInfo.data.times - Math.ceil(message.length * 0.4))
   }
   catch (error: any) {
     if (error.message === 'canceled') {
+      await fetchReduceTimes(authStore.token || '', Math.ceil(lastText.length * 0.75))
+      if (userInfo.data !== null)
+        authStore.setTimes(userInfo.data.times - Math.ceil(message.length * 0.4))
       updateChatSome(+uuid, index, {
         loading: false,
       })

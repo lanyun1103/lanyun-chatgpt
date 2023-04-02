@@ -57,10 +57,20 @@ export function fetchVerify<T = any>(token: string) {
  * 检查是否可用
  * @param token
  */
-export function fetchCutTimes<T>(token: string) {
+// export function fetchCutTimes<T>(token: string) {
+//   return post<T>({
+//     url: '/cut-time',
+//     data: { token },
+//   })
+// }
+/**
+ * 减少字数
+ * @param token
+ */
+export function fetchReduceTimes<T>(token: string, times: number) {
   return post<T>({
-    url: '/cut-time',
-    data: { token },
+    url: '/reduce-times',
+    data: { token, times },
   })
 }
 

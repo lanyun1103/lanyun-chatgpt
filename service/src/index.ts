@@ -1,8 +1,7 @@
-import os from 'os'
 import express from 'express'
 import type { ChatContext, ChatMessage } from './chatgpt'
 import { chatConfig, chatReplyProcess } from './chatgpt'
-import { createUser, getUser, updateMac, updateTimes } from './storage/mongo'
+import { createUser, getUser, reduceTimes, updateMac, updateTimes } from './storage/mongo'
 import { uuid } from './utils'
 
 const app = express()
@@ -109,6 +108,16 @@ router.post('/cut-time', async (req, res) => {
   try {
     const { token } = req.body as { token: string }
     const user = await updateTimes(token)
+    res.send({ status: 'Success', message: '更新成功', data: null })
+  }
+  catch (error) {
+    res.send({ status: 'Fail', message: error.message, data: null })
+  }
+})
+router.post('/reduce-times', async (req, res) => {
+  try {
+    const { token, times } = req.body as { token: string; times: number }
+    const user = await reduceTimes(token, times)
     res.send({ status: 'Success', message: '更新成功', data: null })
   }
   catch (error) {

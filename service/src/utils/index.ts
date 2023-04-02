@@ -30,6 +30,14 @@ export function generateToken(): string {
   }
   return token
 }
+export function generateGPT4(): string {
+  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
+  let result = ''
+  for (let i = 0; i < 16; i++)
+    result += characters.charAt(Math.floor(Math.random() * characters.length))
+
+  return `gpt4-${result}`
+}
 
 /**
  * 生成uuid
