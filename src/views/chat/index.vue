@@ -335,13 +335,13 @@ async function onRegenerate(index: number) {
     await fetchChatAPIOnce()
     // await fetchReduceTimes(authStore.token || '', singleText.length)
     if (userInfo.data !== null)
-      authStore.setTimes(userInfo.data.times - message.length)
+      authStore.setTimes(userInfo.data.times - singleText.length)
   }
   catch (error: any) {
     if (error.message === 'canceled') {
       // await fetchReduceTimes(authStore.token || '', singleText.length)
       if (userInfo.data !== null)
-        authStore.setTimes(userInfo.data.times - message.length)
+        authStore.setTimes(userInfo.data.times - singleText.length)
       updateChatSome(+uuid, index, {
         loading: false,
       })
