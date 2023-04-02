@@ -154,7 +154,6 @@ async function onConversation() {
           try {
             const data = JSON.parse(chunk)
             singleText = lastText + data.text ?? ''
-            console.log(singleText)
             updateChat(+uuid, dataSources.value.length - 1, {
               dateTime: new Date().toLocaleString(),
               text: lastText + data.text ?? '',
@@ -186,15 +185,14 @@ async function onConversation() {
       })
     }
     await fetchChatAPIOnce()
-    console.log(`${singleText}finished`)
-    await fetchReduceTimes(authStore.token || '', Math.ceil(lastText.length * 0.75))
+    await fetchReduceTimes(authStore.token || '', Math.ceil(singleText.length * 0.75))
     if (userInfo.data !== null)
       authStore.setTimes(userInfo.data.times - Math.ceil(message.length * 0.4))
   }
   catch (error: any) {
     const errorMessage = error?.message ?? t('common.wrong')
     if (error.message === 'canceled') {
-      await fetchReduceTimes(authStore.token || '', Math.ceil(lastText.length * 0.75))
+      await fetchReduceTimes(authStore.token || '', Math.ceil(singleText.length * 0.75))
       if (userInfo.data !== null)
         authStore.setTimes(userInfo.data.times - Math.ceil(message.length * 0.4))
       updateChatSome(+uuid, dataSources.value.length - 1, {
@@ -283,6 +281,7 @@ async function onRegenerate(index: number) {
   })
 
   let lastText = ''
+  let singleText = ''
   try {
     const fetchChatAPIOnce = async () => {
       await fetchChatAPIProcess<Chat.ConversationResponse>({
@@ -303,6 +302,7 @@ async function onRegenerate(index: number) {
             chunk = responseText.substring(lastIndex)
           try {
             const data = JSON.parse(chunk)
+            singleText = lastText + data.text ?? ''
             updateChat(+uuid, index, {
               dateTime: new Date().toLocaleString(),
               text: lastText + data.text ?? '',
@@ -332,13 +332,13 @@ async function onRegenerate(index: number) {
       })
     }
     await fetchChatAPIOnce()
-    await fetchReduceTimes(authStore.token || '', Math.ceil(lastText.length * 0.75))
+    await fetchReduceTimes(authStore.token || '', Math.ceil(singleText.length * 0.75))
     if (userInfo.data !== null)
       authStore.setTimes(userInfo.data.times - Math.ceil(message.length * 0.4))
   }
   catch (error: any) {
     if (error.message === 'canceled') {
-      await fetchReduceTimes(authStore.token || '', Math.ceil(lastText.length * 0.75))
+      await fetchReduceTimes(authStore.token || '', Math.ceil(singleText.length * 0.75))
       if (userInfo.data !== null)
         authStore.setTimes(userInfo.data.times - Math.ceil(message.length * 0.4))
       updateChatSome(+uuid, index, {
