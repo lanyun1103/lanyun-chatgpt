@@ -154,6 +154,7 @@ async function onConversation() {
           try {
             const data = JSON.parse(chunk)
             singleText = lastText + data.text ?? ''
+            console.log(singleText)
             updateChat(+uuid, dataSources.value.length - 1, {
               dateTime: new Date().toLocaleString(),
               text: lastText + data.text ?? '',
@@ -184,6 +185,7 @@ async function onConversation() {
         },
       })
     }
+    console.log(`${singleText}finished`)
     await fetchChatAPIOnce()
     await fetchReduceTimes(authStore.token || '', Math.ceil(singleText.length * 0.75))
     if (userInfo.data !== null)
