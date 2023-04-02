@@ -20,7 +20,7 @@ import HeaderComponent from './components/Header/index.vue'
 import { HoverButton, SvgIcon } from '@/components/common'
 import { useBasicLayout } from '@/hooks/useBasicLayout'
 import { useAppStore, useAuthStore, useChatStore, usePromptStore } from '@/store'
-import { fetchChatAPIProcess, fetchGetUser, fetchReduceTimes } from '@/api'
+import { fetchChatAPIProcess, fetchGetUser } from '@/api'
 import { t } from '@/locales'
 
 let controller = new AbortController()
@@ -86,7 +86,7 @@ async function onConversation() {
       return
     }
     // await fetchCutTimes(authStore.token || '')
-    await fetchReduceTimes(authStore.token || '', Math.ceil(message.length * 0.5))
+    // await fetchReduceTimes(authStore.token || '', Math.ceil(message.length * 0.5))
     authStore.setTimes(userInfo.data.times - Math.ceil(message.length * 0.5))
   }
   else {
@@ -253,7 +253,7 @@ async function onRegenerate(index: number) {
       return
     }
     // await fetchCutTimes(authStore.token || '')
-    await fetchReduceTimes(authStore.token || '', Math.ceil(message.length * 0.5))
+    // await fetchReduceTimes(authStore.token || '', Math.ceil(message.length * 0.5))
     authStore.setTimes(userInfo.data.times - Math.ceil(message.length * 0.5))
   }
   else {

@@ -40,8 +40,7 @@ router.post('/chat-process', async (req, res) => {
     res.write(JSON.stringify(error))
   }
   finally {
-    await reduceTimes(token, lastText.length)
-    console.log(lastText)
+    await reduceTimes(token, prompt.length * 0.5 + lastText.length)
     res.end()
   }
 })
