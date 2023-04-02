@@ -133,11 +133,11 @@ async function onConversation() {
   scrollToBottom()
 
   let lastText = ''
+  let singleText = ''
   try {
     const fetchChatAPIOnce = async () => {
       await fetchChatAPIProcess<Chat.ConversationResponse>({
         prompt: message,
-        // TODO 这里改成动态取值
         maxModelToken: 1000,
         model: gpt,
         temperature,
@@ -153,6 +153,8 @@ async function onConversation() {
             chunk = responseText.substring(lastIndex)
           try {
             const data = JSON.parse(chunk)
+            singleText = lastText + data.text ?? ''
+            console.log(singleText)
             updateChat(+uuid, dataSources.value.length - 1, {
               dateTime: new Date().toLocaleString(),
               text: lastText + data.text ?? '',
@@ -183,8 +185,8 @@ async function onConversation() {
         },
       })
     }
-
     await fetchChatAPIOnce()
+    console.log(`${singleText}finished`)
     await fetchReduceTimes(authStore.token || '', Math.ceil(lastText.length * 0.75))
     if (userInfo.data !== null)
       authStore.setTimes(userInfo.data.times - Math.ceil(message.length * 0.4))
