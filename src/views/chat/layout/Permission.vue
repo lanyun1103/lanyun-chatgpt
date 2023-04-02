@@ -47,7 +47,7 @@ async function handleVerify() {
 }
 
 async function handleJump() {
-  window.open('https://www.vifaka.com/list/97171ae5d1327582', '_blank')
+  window.open('https://www.vifaka.com/list/b3d8053fd1da9530', '_blank')
 }
 
 function handlePress(event: KeyboardEvent) {
