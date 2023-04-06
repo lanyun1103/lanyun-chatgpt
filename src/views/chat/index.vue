@@ -11,6 +11,7 @@ import {
   useMessage,
 } from 'naive-ui'
 import html2canvas from 'html2canvas'
+import { countWords } from '../../../service/src/utils'
 import { Message } from './components'
 import { useScroll } from './hooks/useScroll'
 import { useChat } from './hooks/useChat'
@@ -87,7 +88,7 @@ async function onConversation() {
     }
     // await fetchCutTimes(authStore.token || '')
     // await fetchReduceTimes(authStore.token || '', Math.ceil(message.length * 0.5))
-    authStore.setTimes(userInfo.data.times - Math.ceil(message.length * 0.5))
+    authStore.setTimes(userInfo.data.times - Math.ceil(countWords(message) * 0.5))
   }
   else {
     if (times <= 3)
@@ -188,14 +189,14 @@ async function onConversation() {
     await fetchChatAPIOnce()
     // await fetchReduceTimes(authStore.token || '', singleText.length)
     if (userInfo.data !== null)
-      authStore.setTimes(userInfo.data.times - singleText.length)
+      authStore.setTimes(userInfo.data.times - countWords(singleText))
   }
   catch (error: any) {
     const errorMessage = error?.message ?? t('common.wrong')
     if (error.message === 'canceled') {
       // await fetchReduceTimes(authStore.token || '', singleText.length)
       if (userInfo.data !== null)
-        authStore.setTimes(userInfo.data.times - singleText.length)
+        authStore.setTimes(userInfo.data.times - countWords(singleText))
       updateChatSome(+uuid, dataSources.value.length - 1, {
         loading: false,
       })
@@ -254,7 +255,7 @@ async function onRegenerate(index: number) {
     }
     // await fetchCutTimes(authStore.token || '')
     // await fetchReduceTimes(authStore.token || '', Math.ceil(message.length * 0.5))
-    authStore.setTimes(userInfo.data.times - Math.ceil(message.length * 0.5))
+    authStore.setTimes(userInfo.data.times - Math.ceil(countWords(message) * 0.5))
   }
   else {
     if (times <= 3)
@@ -335,13 +336,13 @@ async function onRegenerate(index: number) {
     await fetchChatAPIOnce()
     // await fetchReduceTimes(authStore.token || '', singleText.length)
     if (userInfo.data !== null)
-      authStore.setTimes(userInfo.data.times - singleText.length)
+      authStore.setTimes(userInfo.data.times - countWords(singleText))
   }
   catch (error: any) {
     if (error.message === 'canceled') {
       // await fetchReduceTimes(authStore.token || '', singleText.length)
       if (userInfo.data !== null)
-        authStore.setTimes(userInfo.data.times - singleText.length)
+        authStore.setTimes(userInfo.data.times - countWords(singleText))
       updateChatSome(+uuid, index, {
         loading: false,
       })

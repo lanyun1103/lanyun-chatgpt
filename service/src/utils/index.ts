@@ -56,3 +56,16 @@ export function uuid() {
   }
   return uuidValue
 }
+
+export function countWords(str: string): number {
+  let count = 0
+  const regex = /[a-zA-Z]+|\p{Unified_Ideograph}/ug
+  const matches = [...str.matchAll(regex)]
+
+  for (const match of matches) {
+    if (match[0].length > 0)
+      count++
+  }
+
+  return count
+}
