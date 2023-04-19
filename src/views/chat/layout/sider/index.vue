@@ -1,31 +1,46 @@
 <script setup lang="ts">
 import type { CSSProperties } from 'vue'
-import { computed, ref, watch } from 'vue'
-import { NButton, NInput, NLayoutSider, NSelect, NSlider } from 'naive-ui'
+import { computed, h, ref, watch } from 'vue'
+import { NButton, NLayoutSider, NSelect, useDialog } from 'naive-ui'
+import newchat from './newchat.vue'
 import List from './List.vue'
 import Footer from './Footer.vue'
+import { PromptStore } from '@/components/common'
 import { useAppStore, useAuthStore, useChatStore } from '@/store'
 import { useBasicLayout } from '@/hooks/useBasicLayout'
-import { PromptStore } from '@/components/common'
 import type { Gpt } from '@/store/modules/app/helper'
+import { t } from '@/locales'
 const appStore = useAppStore()
 const chatStore = useChatStore()
 const authStore = useAuthStore()
+const dialog = useDialog()
 
 const { isMobile } = useBasicLayout()
 const show = ref(false)
-// const modelOptions: { label: string; key: string; value: string }[] = [
-//   { label: 'Chatgpt3.5', key: '3.5', value: 'gpt-3.5-turbo' },
-//   { label: 'Chatgpt4.0', key: '3.5', value: 'gpt-4' },
-// ]
 
 const serveOptions: { label: string; key: string; value: string }[] = [
   { label: '1', key: '3.5', value: '3.5' },
   { label: '2', key: '3.5', value: '4.0' },
 ]
 
+const system_content = computed({
+  get() {
+    return appStore.system_content
+  },
+  set(value: { label: string; key: string; value: string }[]) {
+    appStore.settemp(value)
+  },
+})
 const collapsed = computed(() => appStore.siderCollapsed)
 
+const system_content_temp = computed({
+  get() {
+    return appStore.system_content_temp
+  },
+  set(value: number) {
+    appStore.settemp(value)
+  },
+})
 const gpt = computed({
   get() {
     return appStore.gpt
@@ -35,44 +50,23 @@ const gpt = computed({
   },
 })
 
-const max_1 = computed({
-  get() {
-    return appStore.max_1
-  },
-  set(value: number) {
-    appStore.setmax_1(value)
-  },
-})
-
-const max_1_st = computed({
-  get() {
-    return appStore.max_1.toString()
-  },
-  set(value: string) {
-    appStore.setmax_1(parseInt(value))
-  },
-})
-
-const max_2 = computed({
-  get() {
-    return appStore.max_2
-  },
-  set(value: number) {
-    appStore.setmax_2(value)
-  },
-})
-
-const max_2_st = computed({
-  get() {
-    return appStore.max_2.toString()
-  },
-  set(value: string) {
-    appStore.setmax_2(parseInt(value))
-  },
-})
+function handlehelp() {
+  dialog.warning({
+    title: t('system content'),
+    content: t(' 设置AI的语言风格和人格特征'),
+  })
+}
 
 function handleAdd() {
-  chatStore.addHistory({ title: 'New Chat', uuid: Date.now(), isEdit: false })
+  dialog.warning({
+    title: t('参数设定'),
+    content: () => h(newchat),
+    positiveText: t('common.yes'),
+    negativeText: t('common.no'),
+    onPositiveClick: async () => {
+      chatStore.addHistory({ title: 'New Chat', uuid: Date.now(), isEdit: false })
+    },
+  })
 }
 
 function handleUpdateCollapsed() {
@@ -137,52 +131,20 @@ watch(
           <List />
         </div>
 
-        <div v-if="gpt === 'gpt-3.5-turbo'" class="p-4">
-          Chatgpt 3.5's max token:
-          <NInput v-model:value="max_1_st" />
-          <div>
-            <NSlider v-model:value="max_1" :min="0" :max="4096" :step="1" />
-          </div>
-        </div>
-
-        <div v-if="gpt === 'gpt-4'" class="p-4">
-          Chatgpt 4.0's max token:
-          <NInput v-model:value="max_2_st" />
-          <div>
-            <NSlider v-model:value="max_2" :min="0" :max="8196" :step="1" />
-          </div>
-        </div>
         <div class="p-4">
           累计访问人数：
         </div>
-        <!--        <div class="p-4"> -->
-        <!--          <div class="flex items-center space-x-4"> -->
-        <!--            选择模型 ： -->
-
-        <!--            <div class="flex flex-wrap items-center gap-4"> -->
-        <!--              <NSelect -->
-        <!--                style="width: 140px" -->
-        <!--                :options="modelOptions" -->
-        <!--                :value="gpt" -->
-        <!--                @update-value="(value) => appStore.setgpt(value)" -->
-        <!--              /> -->
-        <!--            </div> -->
-        <!--          </div> -->
-        <!--        </div> -->
 
         <div class="p-4">
           <div class="flex items-center space-x-4">
             选择服务器：
 
             <div class="flex flex-wrap items-center gap-4">
-              <NSelect
-                style="width: 140px"
-                :options="serveOptions"
-                @update-value="(value) => appStore.setLanguage(value)"
-              />
+              <NSelect style="width: 140px" :options="serveOptions" />
             </div>
           </div>
         </div>
+
         <div class="p-4">
           <NButton block @click="show = true">
             Prompt Store
@@ -205,4 +167,5 @@ watch(
     />
   </template>
   <PromptStore v-model:visible="show" />
+  <div ref="container" />
 </template>

@@ -1,7 +1,8 @@
-import { defineStore } from 'pinia'
+import { createPinia, defineStore } from 'pinia'
 import type { AppState, Gpt, Language, Theme } from './helper'
 import { getLocalSetting, setLocalSetting } from './helper'
-import { store } from '@/store'
+
+const store = createPinia()
 
 export const useAppStore = defineStore('app-store', {
   state: (): AppState => getLocalSetting(),
@@ -44,9 +45,9 @@ export const useAppStore = defineStore('app-store', {
       }
     },
 
-    setTemperature(max: number) {
-      if (this.temperature !== max) {
-        this.temperature = max
+    settemp(max: number) {
+      if (this.system_content_temp !== max) {
+        this.system_content_temp = max
         this.recordState()
       }
     },

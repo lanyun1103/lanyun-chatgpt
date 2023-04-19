@@ -15,7 +15,8 @@ export interface AppState {
   gpt: Gpt
   max_1: number
   max_2: number
-  temperature: number
+  system_content: { label: string; key: string; value: number }[]
+  system_content_temp: number
 }
 
 export function defaultSetting(): AppState {
@@ -24,9 +25,13 @@ export function defaultSetting(): AppState {
     theme: 'light',
     language: 'zh-CN',
     gpt: 'gpt-3.5-turbo',
-    max_1: 1000,
-    max_2: 1000,
-    temperature: 0,
+    max_1: 4096,
+    max_2: 1024,
+    system_content: [
+      { label: '温柔的', key: '`温柔的小猫咪', value: 0 },
+      { label: '狂野的', key: '狂野的大狼狗', value: 1 },
+    ],
+    system_content_temp: 1,
   }
 }
 

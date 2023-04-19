@@ -38,6 +38,8 @@ const needPermission = computed(() => {
     return false
   // 没有token，判断缓存是否大于4
   return parseInt(localStorage.getItem('accessAuth') || '') >= 4
+	// Gpt4 验证方式
+  // return !authStore.token
 })
 
 // const getMobileClass = computed(() => {
