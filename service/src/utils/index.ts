@@ -30,6 +30,14 @@ export function generateToken(): string {
   }
   return token
 }
+export function generateGPT4(): string {
+  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
+  let result = ''
+  for (let i = 0; i < 16; i++)
+    result += characters.charAt(Math.floor(Math.random() * characters.length))
+
+  return `gpt4-${result}`
+}
 
 /**
  * 生成uuid
@@ -47,4 +55,17 @@ export function uuid() {
     uuidValue += (k === 12 ? 4 : (k === 16 ? (randomValue & 3 | 8) : randomValue)).toString(16)
   }
   return uuidValue
+}
+
+export function countWords(str: string): number {
+  let count = 0
+  const regex = /[a-zA-Z]+|\p{Unified_Ideograph}/ug
+  const matches = [...str.matchAll(regex)]
+
+  for (const match of matches) {
+    if (match[0].length > 0)
+      count++
+  }
+
+  return count
 }

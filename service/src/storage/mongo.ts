@@ -1,5 +1,5 @@
 import { MongoClient } from 'mongodb'
-import { generateToken } from '../utils'
+import { generateGPT4 } from '../utils'
 import { UserInfo } from './model'
 
 const url = process.env.MONGODB_URL
@@ -8,7 +8,7 @@ const userCol = client.db('chatgpt').collection('user')
 
 export async function createUser(times: number, macAuth: boolean, token = '') {
   if (token === '')
-    token = generateToken()
+    token = generateGPT4()
 
   const userInfo = new UserInfo(token, times, macAuth)
   await userCol.insertOne(userInfo)
@@ -35,6 +35,16 @@ export async function updateTimes(token: string) {
     throw new Error(`User not found with token ${token}`)
 
   const updatedUser = { ...user, times: user.times !== 0 ? user.times - 1 : user.times }
+  await userCol.updateOne({ token }, { $set: updatedUser })
+  return updatedUser
+}
+
+export async function reduceTimes(token: string, times: number) {
+  const user = await userCol.findOne({ token })
+  if (!user)
+    throw new Error(`User not found with token ${token}`)
+
+  const updatedUser = { ...user, times: user.times !== 0 ? user.times - times : user.times }
   await userCol.updateOne({ token }, { $set: updatedUser })
   return updatedUser
 }

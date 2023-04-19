@@ -25,13 +25,14 @@ export function fetchChatAPIProcess<T = any>(
     maxModelToken: number
     model: string
     temperature: number
+    token: string
     options?: { conversationId?: string; parentMessageId?: string }
     signal?: GenericAbortSignal
     onDownloadProgress?: (progressEvent: AxiosProgressEvent) => void },
 ) {
   return post<T>({
     url: '/chat-process',
-    data: { prompt: params.prompt, options: params.options, maxModelToken: params.maxModelToken, model: params.model, temperature: params.temperature },
+    data: { prompt: params.prompt, options: params.options, maxModelToken: params.maxModelToken, model: params.model, temperature: params.temperature, token: params.token },
     signal: params.signal,
     onDownloadProgress: params.onDownloadProgress,
   })
@@ -57,10 +58,20 @@ export function fetchVerify<T = any>(token: string) {
  * 检查是否可用
  * @param token
  */
-export function fetchCutTimes<T>(token: string) {
+// export function fetchCutTimes<T>(token: string) {
+//   return post<T>({
+//     url: '/cut-time',
+//     data: { token },
+//   })
+// }
+/**
+ * 减少字数
+ * @param token
+ */
+export function fetchReduceTimes<T>(token: string, times: number) {
   return post<T>({
-    url: '/cut-time',
-    data: { token },
+    url: '/reduce-times',
+    data: { token, times },
   })
 }
 

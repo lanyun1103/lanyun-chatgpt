@@ -2,7 +2,7 @@
 import express from 'express'
 import type { ChatContext, ChatMessage } from './chatgpt'
 import { chatConfig, chatReplyProcess } from './chatgpt'
-import { createUser, getUser, updateMac, updateTimes } from './storage/mongo'
+import { createUser, getUser, reduceTimes, updateMac, updateTimes } from './storage/mongo'
 import { uuid } from './utils'
 
 const app = express()
@@ -20,8 +20,9 @@ app.all('*', (_, res, next) => {
 
 router.post('/chat-process', async (req, res) => {
   res.setHeader('Content-type', 'application/octet-stream')
+  let lastText = ''
+  const { prompt, options = {}, maxModelToken, model, temperature, token } = req.body as { prompt: string; options?: ChatContext; maxModelToken: number; model: string; temperature: number; token: string }
   try {
-    const { prompt, options = {}, maxModelToken, model, temperature } = req.body as { prompt: string; options?: ChatContext; maxModelToken: number; model: string; temperature: number }
     const authHeader = req.headers.authorization
 
     // 检查header是否存在
@@ -33,12 +34,14 @@ router.post('/chat-process', async (req, res) => {
     await chatReplyProcess(prompt, maxModelToken, model, temperature, options, (chat: ChatMessage) => {
       res.write(firstChunk ? JSON.stringify(chat) : `\n${JSON.stringify(chat)}`)
       firstChunk = false
+      lastText = chat.text
     })
   }
   catch (error) {
     res.write(JSON.stringify(error))
   }
   finally {
+    await reduceTimes(token, prompt.length * 0.5 + lastText.length)
     res.end()
   }
 })
@@ -92,8 +95,14 @@ router.post('/verify', async (req, res) => {
 router.post('/add-user', async (req, res) => {
   try {
     const { times, macAuth, token } = req.body as { times: number; macAuth: boolean; token: string }
+    const authHeader = req.headers.authorization
+    // 检查header是否存在
+    if (authHeader !== 'lanyun1103') {
+      res.status(401).json({ error: 'Authorization header is missing' })
+      return
+    }
     if (!times)
-      throw new Error('Secret key is empty')
+      throw new Error('Invalid params')
 
     if (times === 0)
       throw new Error('数字无效 | Secret key is invalid')
@@ -109,6 +118,16 @@ router.post('/cut-time', async (req, res) => {
   try {
     const { token } = req.body as { token: string }
     const user = await updateTimes(token)
+    res.send({ status: 'Success', message: '更新成功', data: null })
+  }
+  catch (error) {
+    res.send({ status: 'Fail', message: error.message, data: null })
+  }
+})
+router.post('/reduce-times', async (req, res) => {
+  try {
+    const { token, times } = req.body as { token: string; times: number }
+    const user = await reduceTimes(token, times)
     res.send({ status: 'Success', message: '更新成功', data: null })
   }
   catch (error) {

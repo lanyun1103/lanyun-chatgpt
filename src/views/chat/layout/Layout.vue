@@ -86,7 +86,7 @@ onMounted(async () => {
               常见问题
             </NButton>
 
-            剩余提问次数 : <NText>{{ times }}</NText>
+            剩余提问字数 : <NText>{{ times }}</NText>
 
             <NButton type="primary" @click="toBuy">
               购买卡密
