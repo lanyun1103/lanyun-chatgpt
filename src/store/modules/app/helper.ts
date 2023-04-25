@@ -24,11 +24,11 @@ export function defaultSetting(): AppState {
     siderCollapsed: false,
     theme: 'light',
     language: 'zh-CN',
-    gpt: 'gpt-3.5-turbo',
+    gpt: import.meta.env.OPENAI_API_MODEL,
     max_1: 4096,
     max_2: 1024,
     system_content: [
-      { label: '温柔的', key: '`温柔的小猫咪', value: 0 },
+      { label: '温柔的', key: '温柔的小猫咪', value: 0 },
       { label: '狂野的', key: '狂野的大狼狗', value: 1 },
     ],
     system_content_temp: 1,

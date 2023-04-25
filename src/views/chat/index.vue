@@ -2,14 +2,7 @@
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { storeToRefs } from 'pinia'
-import {
-  NAutoComplete,
-  NButton,
-  NInput,
-  NSlider,
-  useDialog,
-  useMessage,
-} from 'naive-ui'
+import { NAutoComplete, NButton, NInput, NSlider, useDialog, useMessage } from 'naive-ui'
 import html2canvas from 'html2canvas'
 import { countWords } from '../../../service/src/utils'
 import { Message } from './components'
@@ -18,10 +11,11 @@ import { useChat } from './hooks/useChat'
 import { useCopyCode } from './hooks/useCopyCode'
 import { useUsingContext } from './hooks/useUsingContext'
 import HeaderComponent from './components/Header/index.vue'
+import FloatHeader from './components/FloatHeader/index.vue'
 import { HoverButton, SvgIcon } from '@/components/common'
 import { useBasicLayout } from '@/hooks/useBasicLayout'
 import { useAppStore, useAuthStore, useChatStore, usePromptStore } from '@/store'
-import { fetchChatAPIProcess, fetchGetUser } from '@/api'
+import { fetchChatAPIProcess, fetchCutTimes, fetchGetUser, fetchReduceTimes } from '@/api'
 import { t } from '@/locales'
 
 let controller = new AbortController()
@@ -52,10 +46,10 @@ const appStore = useAppStore()
 
 const temperature = computed({
   get() {
-    return appStore.temperature
+    return appStore.system_content_temp
   },
   set(value: number) {
-    appStore.setTemperature(value)
+    appStore.settemp(value)
   },
 })
 
@@ -80,23 +74,37 @@ async function onConversation() {
   if (!message || message.trim() === '')
     return
   const userInfo = await fetchGetUser(authStore.token || '')
+  const model = appStore.gpt
   const times = parseInt(localStorage.getItem('accessAuth') || '')
   if (userInfo.data !== null) {
     if (userInfo.data.times <= 0) {
       alert('当前授权码次数已用完')
       return
     }
-    // await fetchCutTimes(authStore.token || '')
-    // await fetchReduceTimes(authStore.token || '', Math.ceil(message.length * 0.5))
-    authStore.setTimes(userInfo.data.times - Math.ceil(countWords(message) * 0.5))
+    if (model === 'gpt-3.5-turbo') {
+      await fetchCutTimes(authStore.token || '')
+    }
+    else if (model === 'gpt-4') {
+      await fetchReduceTimes(authStore.token || '', Math.ceil(message.length * 0.5))
+      authStore.setTimes(userInfo.data.times - Math.ceil(countWords(message) * 0.5))
+    }
+    else {
+      alert('模型查询失败！')
+      return
+    }
   }
-  else {
-    if (times <= 3)
-      authStore.setToken('Train')
+  // 用户查询失败（试用，3.5有试用四次
+  else if (model === 'gpt-3.5-turbo') {
+    if (times <= 3 && times >= 0)
+      authStore.setToken('trail')
 
     if (times >= 4)
       authStore.removeToken()
     localStorage.setItem('accessAuth', `${times + 1}`)
+  }
+  else {
+    alert('Gpt4没有试用机会！')
+    return
   }
 
   controller = new AbortController()
@@ -116,7 +124,7 @@ async function onConversation() {
 
   let options: Chat.ConversationRequest = {}
   const lastContext = conversationList.value[conversationList.value.length - 1]?.conversationOptions
-  const temperature = appStore.temperature
+  const temperature = appStore.system_content_temp
   const gpt = appStore.gpt
 
   if (lastContext && usingContext.value)
@@ -241,7 +249,7 @@ async function onRegenerate(index: number) {
   controller = new AbortController()
 
   const { requestOptions } = dataSources.value[index]
-  const temperature = appStore.temperature
+  const temperature = appStore.system_content_temp
   const gpt = appStore.gpt
 
   let message = requestOptions?.prompt ?? ''
@@ -545,6 +553,8 @@ onUnmounted(() => {
           class="w-full max-w-screen-xl m-auto dark:bg-[#101014]"
           :class="[isMobile ? 'p-2' : 'p-4']"
         >
+          <FloatHeader />
+
           <template v-if="!dataSources.length">
             <div
               class="flex items-center justify-center mt-4 text-center text-neutral-300"

@@ -32,7 +32,8 @@ export async function updateMac(token: string, uuid: string) {
 export async function updateTimes(token: string) {
   const user = await userCol.findOne({ token })
   if (!user)
-    throw new Error(`User not found with token ${token}`)
+    return false
+    // throw new Error(`User not found with token ${token}`)
 
   const updatedUser = { ...user, times: user.times !== 0 ? user.times - 1 : user.times }
   await userCol.updateOne({ token }, { $set: updatedUser })
@@ -42,7 +43,8 @@ export async function updateTimes(token: string) {
 export async function reduceTimes(token: string, times: number) {
   const user = await userCol.findOne({ token })
   if (!user)
-    throw new Error(`User not found with token ${token}`)
+    return false
+    // throw new Error(`User not found with token ${token}`)
 
   const updatedUser = { ...user, times: user.times !== 0 ? user.times - times : user.times }
   await userCol.updateOne({ token }, { $set: updatedUser })

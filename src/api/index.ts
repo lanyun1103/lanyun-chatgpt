@@ -58,12 +58,12 @@ export function fetchVerify<T = any>(token: string) {
  * 检查是否可用
  * @param token
  */
-// export function fetchCutTimes<T>(token: string) {
-//   return post<T>({
-//     url: '/cut-time',
-//     data: { token },
-//   })
-// }
+export function fetchCutTimes<T>(token: string) {
+  return post<T>({
+    url: '/cut-time',
+    data: { token },
+  })
+}
 /**
  * 减少字数
  * @param token

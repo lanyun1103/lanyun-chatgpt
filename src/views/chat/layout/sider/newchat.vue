@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, h, watch } from 'vue'
+import { computed, h, ref, watch } from 'vue'
 import { NInput, NSelect, NSlider, useDialog } from 'naive-ui'
 import systemPrompt from './systemprompt.vue'
 import { HoverButton, SvgIcon } from '@/components/common'
@@ -11,7 +11,7 @@ const appStore = useAppStore()
 const dialog = useDialog()
 const { isMobile } = useBasicLayout()
 
-const sliderValue = 50
+const sliderValue = ref(50)
 
 const gpt = computed({
   get() {

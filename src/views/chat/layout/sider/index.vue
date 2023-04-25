@@ -8,7 +8,7 @@ import Footer from './Footer.vue'
 import { PromptStore } from '@/components/common'
 import { useAppStore, useAuthStore, useChatStore } from '@/store'
 import { useBasicLayout } from '@/hooks/useBasicLayout'
-import type { Gpt } from '@/store/modules/app/helper'
+// import type { Gpt } from '@/store/modules/app/helper'
 import { t } from '@/locales'
 const appStore = useAppStore()
 const chatStore = useChatStore()
@@ -23,39 +23,39 @@ const serveOptions: { label: string; key: string; value: string }[] = [
   { label: '2', key: '3.5', value: '4.0' },
 ]
 
-const system_content = computed({
-  get() {
-    return appStore.system_content
-  },
-  set(value: { label: string; key: string; value: string }[]) {
-    appStore.settemp(value)
-  },
-})
+// const system_content = computed({
+//   get() {
+//     return appStore.system_content
+//   },
+//   set(value: { label: string; key: string; value: string }[]) {
+//     appStore.settemp(value)
+//   },
+// })
 const collapsed = computed(() => appStore.siderCollapsed)
+//
+// const system_content_temp = computed({
+//   get() {
+//     return appStore.system_content_temp
+//   },
+//   set(value: number) {
+//     appStore.settemp(value)
+//   },
+// })
+// const gpt = computed({
+//   get() {
+//     return appStore.gpt
+//   },
+//   set(value: Gpt) {
+//     appStore.setgpt(value)
+//   },
+// })
 
-const system_content_temp = computed({
-  get() {
-    return appStore.system_content_temp
-  },
-  set(value: number) {
-    appStore.settemp(value)
-  },
-})
-const gpt = computed({
-  get() {
-    return appStore.gpt
-  },
-  set(value: Gpt) {
-    appStore.setgpt(value)
-  },
-})
-
-function handlehelp() {
-  dialog.warning({
-    title: t('system content'),
-    content: t(' 设置AI的语言风格和人格特征'),
-  })
-}
+// function handlehelp() {
+//   dialog.warning({
+//     title: t('system content'),
+//     content: t(' 设置AI的语言风格和人格特征'),
+//   })
+// }
 
 function handleAdd() {
   dialog.warning({
